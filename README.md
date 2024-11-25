@@ -1,11 +1,13 @@
-#03 - Node
+# 03 - Node
 
-## Instalaçao das dependências:
+## Instalaçao das dependências
+
 ```bash
   pnpm i
 ```
 
-## Execução:
+## Execução
+
 ```bash
   pnpm dev
 ```
