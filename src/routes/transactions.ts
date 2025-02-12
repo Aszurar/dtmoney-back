@@ -5,43 +5,67 @@ import crypto from 'node:crypto'
 import { TRANSACTION_TYPE } from '../utils/enums'
 import { findByIdSchema } from '../validations/transactions/listById'
 import { deleteByIdSchema } from '../validations/transactions/deleteById'
+import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
 
 export async function transactionsRoutes(app: FastifyInstance) {
   //* List all transactions
-  app.get('/', async () => {
-    const transactions = await knex('transactions').select('*')
+  app.get('/',
+    {
+      preHandler: [checkSessionIdExists],
 
-    return { transactions }
-  })
+    }
+    , async (request) => {
+      const sessionId = request.cookies.sessionId
+
+      const transactions = await knex('transactions').where('session_id', sessionId).select('*')
+
+      return { transactions }
+    })
 
   //* List transaction by id
-  app.get('/:id', async (request, reply) => {
-    const routeParamsValidated = findByIdSchema.safeParse(request.params)
-
-    if (!routeParamsValidated.success) {
-      return reply.status(400).send({
-        message: 'Invalid id',
-        errors: routeParamsValidated.error.flatten().fieldErrors,
-      })
+  app.get('/:id',
+    {
+      preHandler: [checkSessionIdExists]
     }
+    , async (request, reply) => {
 
-    const { id } = routeParamsValidated.data
+      const sessionId = request.cookies.sessionId
 
-    const transaction = await knex('transactions').where('id', id).first()
 
-    return { transaction }
-  })
+      const routeParamsValidated = findByIdSchema.safeParse(request.params)
+
+      if (!routeParamsValidated.success) {
+        return reply.status(400).send({
+          message: 'Invalid id',
+          errors: routeParamsValidated.error.flatten().fieldErrors,
+        })
+      }
+
+
+      const { id } = routeParamsValidated.data
+
+      const transaction = await knex('transactions').where('id', id).where('session_id', sessionId).first()
+
+      return { transaction }
+    })
 
   //* List the balance
-  app.get('/balance', async () => {
-    const balance = await knex('transactions')
-      .sum('amount', {
-        as: 'amount',
-      })
-      .first()
+  app.get('/balance',
+    {
+      preHandler: [checkSessionIdExists]
+    }
+    , async (request) => {
 
-    return { balance }
-  })
+      const sessionId = request.cookies.sessionId
+
+      const balance = await knex('transactions').where('session_id', sessionId)
+        .sum('amount', {
+          as: 'amount',
+        })
+        .first()
+
+      return { balance }
+    })
 
   //* Create a transaction
   app.post('/', async (request, reply) => {
@@ -66,38 +90,62 @@ export async function transactionsRoutes(app: FastifyInstance) {
 
     const { title, amount } = dataParsed
 
+
+    let sessionId = request.cookies.sessionId
+
+    if (!sessionId) {
+      sessionId = crypto.randomUUID()
+      reply.cookie('sessionId', sessionId, {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+      })
+    }
+
     await knex('transactions').insert({
       id: crypto.randomUUID(),
       title,
       amount,
       created_at: new Date().toISOString(),
+      session_id: sessionId,
     })
 
     return reply.status(201).send()
   })
 
   // * Delete transaction by id
-  app.delete('/:id', async (request, reply) => {
-    const routeParamsValidated = deleteByIdSchema.safeParse(request.params)
-
-    if (!routeParamsValidated.success) {
-      return reply.status(400).send({
-        message: 'Invalid id',
-        errors: routeParamsValidated.error.flatten().fieldErrors,
-      })
+  app.delete('/:id',
+    {
+      preHandler: [checkSessionIdExists]
     }
+    , async (request, reply) => {
+      const sessionId = request.cookies.sessionId
 
-    const { id } = routeParamsValidated.data
+      const routeParamsValidated = deleteByIdSchema.safeParse(request.params)
 
-    await knex('transactions').where('id', id).delete()
+      if (!routeParamsValidated.success) {
+        return reply.status(400).send({
+          message: 'Invalid id',
+          errors: routeParamsValidated.error.flatten().fieldErrors,
+        })
+      }
 
-    reply.status(204).send()
-  })
+      const { id } = routeParamsValidated.data
+
+      await knex('transactions').where('id', id).where('session_id', sessionId).delete()
+
+      reply.status(204).send()
+    })
 
   // * Delete all transactions
-  app.delete('/', async (_, reply) => {
-    await knex('transactions').delete()
+  app.delete('/',
+    {
+      preHandler: [checkSessionIdExists]
+    }
+    , async (request, reply) => {
+      const sessionId = request.cookies.sessionId
 
-    reply.status(204).send()
-  })
+      await knex('transactions').where("session_id", sessionId).delete()
+
+      reply.status(204).send()
+    })
 }
