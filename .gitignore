@@ -3,6 +3,7 @@ db/app.db
 
 # local env files
 .env
+.env.test
 
 # macOS
 .DS_Store

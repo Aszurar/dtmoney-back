@@ -16,7 +16,7 @@
 
 ## Execução
 
-- Lembre-se de configurar a .env(variáveis de ambiente) antes de rodar o projeto
+- Lembre-se de configurar a .env(**variáveis de ambiente**) antes de rodar o projeto
 
 ```bash
   pnpm dev
