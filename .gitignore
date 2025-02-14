@@ -1,5 +1,6 @@
 /node_modules
 db/app.db
+db/test.db
 
 # local env files
 .env
