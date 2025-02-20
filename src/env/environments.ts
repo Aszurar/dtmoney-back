@@ -4,9 +4,14 @@ enum Environment {
   PRODUCTION = 'production',
 }
 
+enum DATABASE_CLIENT {
+  POSTGRES = 'pg',
+  SQLITE = 'sqlite',
+}
+
 enum EnvironmentFilesName {
   TEST = '.env.test',
   DEV = '.env',
 }
 
-export { Environment, EnvironmentFilesName }
+export { Environment, EnvironmentFilesName, DATABASE_CLIENT }
