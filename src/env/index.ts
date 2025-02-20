@@ -1,6 +1,6 @@
 import { config } from 'dotenv'
 import { z } from 'zod'
-import { Environment, EnvironmentFilesName } from './environments'
+import { DATABASE_CLIENT, Environment, EnvironmentFilesName } from './environments'
 
 if (process.env.NODE_ENV === Environment.TEST) {
   config({
@@ -10,18 +10,17 @@ if (process.env.NODE_ENV === Environment.TEST) {
   config()
 }
 
-console.log("process.env.DATABASE_URL", process.env.DATABASE_URL)
-
 const envSchema = z.object({
   NODE_ENV: z
     .enum([Environment.DEV, Environment.TEST, Environment.PRODUCTION], {
       message: 'Invalid NODE_ENV',
     })
     .default(Environment.DEV),
+  DATABASE_CLIENT: z.enum([DATABASE_CLIENT.SQLITE, DATABASE_CLIENT.POSTGRES]),
   DATABASE_URL: z.string({
     required_error: 'DATABASE_URL env is required',
   }).trim().min(1),
-  PORT: z.number().default(3333),
+  PORT: z.coerce.number().default(3333),
 })
 
 const _env = envSchema.safeParse(process.env)
