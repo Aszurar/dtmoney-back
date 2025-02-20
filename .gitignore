@@ -8,3 +8,6 @@ db/test.db
 
 # macOS
 .DS_Store
+
+# build
+build
