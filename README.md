@@ -114,7 +114,7 @@
 - Clonar o projeto:
 
   ```bash
-   git clone https://github.com/Aszurar/todo-back
+   git clone https://github.com/Aszurar/dtmoney-back.git
   ```
 
 - É necessário ter o Node.js instalado na máquina assim como todas **tecnologias**/**dependências** citadas acima.
