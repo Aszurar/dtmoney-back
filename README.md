@@ -1,6 +1,6 @@
 # #03 - Node
 
-## Fundamentos de Node.js
+## Rotas e HTTP
 
 - Esse projeto foi feito a partir do 2º módulo do curso de Formação Node.js da Rocketseat.
 
